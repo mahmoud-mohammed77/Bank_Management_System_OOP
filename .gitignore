@@ -1,0 +1,13 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+target/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Database Files
+accounts.txt
+account.txt
