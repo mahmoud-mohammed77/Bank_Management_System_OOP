@@ -2,6 +2,7 @@ package model;
 
 import dao.AccountDAO;
 import dao.TransactionDAO;
+import dao.TransferDAO;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -10,13 +11,15 @@ public class Bank {
 
     private AccountDAO accountDAO;
     private TransactionDAO transactionDAO;
+    private TransferDAO transferDAO;
 
     public Bank() {
         this.accountDAO = new AccountDAO();
         this.transactionDAO = new TransactionDAO();
+        this.transferDAO = new TransferDAO();
     }
 
-    // ========== إدارة الحسابات ==========
+
 
     public void addAccount(Account account) {
         accountDAO.addAccount(account);
@@ -52,7 +55,7 @@ public class Bank {
         return true;
     }
 
-    // ========== العمليات البنكية ==========
+
 
     public boolean deposit(int accountNumber, double amount) {
         Account account = findAccount(accountNumber);
@@ -60,13 +63,12 @@ public class Bank {
             return false;
         }
 
-        // 1. تحديث الرصيد في الكائن
+
         account.deposit(amount);
 
-        // 2. تحديث الرصيد في الداتابيز
+
         accountDAO.updateBalance(accountNumber, account.getBalance());
 
-        // 3. تسجيل العملية في جدول Transactions
         transactionDAO.addTransaction(account.getAccountID(), "DEPOSIT", amount, "SUCCESS");
 
         return true;
@@ -78,17 +80,17 @@ public class Bank {
             return false;
         }
 
-        // 1. محاولة السحب في الكائن
+
         boolean success = account.withdraw(amount);
 
         if (success) {
-            // 2. تحديث الرصيد في الداتابيز لو نجح
+
             accountDAO.updateBalance(accountNumber, account.getBalance());
 
-            // 3. تسجيل العملية
+
             transactionDAO.addTransaction(account.getAccountID(), "WITHDRAW", amount, "SUCCESS");
         } else {
-            // تسجيل محاولة سحب فاشلة (اختياري)
+
             transactionDAO.addTransaction(account.getAccountID(), "WITHDRAW", amount, "FAILED");
         }
 
@@ -99,35 +101,35 @@ public class Bank {
         Account fromAccount = findAccount(fromAccountNumber);
         Account toAccount = findAccount(toAccountNumber);
 
-        // التحقق من وجود الحسابات
         if (fromAccount == null || toAccount == null) {
             return false;
         }
-        // منع التحويل لنفس الحساب
         if (fromAccount == toAccount) {
             return false;
         }
-        // التحقق من كفاية الرصيد
         if (amount <= 0 || amount > fromAccount.getBalance()) {
             return false;
         }
 
-        // 1. خصم وإضافة في الكائنات
+
         fromAccount.balance -= amount;
         toAccount.balance += amount;
 
-        // 2. تحديث الداتابيز للحسابين
+
         accountDAO.updateBalance(fromAccountNumber, fromAccount.getBalance());
         accountDAO.updateBalance(toAccountNumber, toAccount.getBalance());
 
-        // 3. تسجيل العمليات في جدول Transactions
+
         transactionDAO.addTransaction(fromAccount.getAccountID(), "TRANSFER_OUT", amount, "SUCCESS");
         transactionDAO.addTransaction(toAccount.getAccountID(), "TRANSFER_IN", amount, "SUCCESS");
+
+
+        transferDAO.addTransfer(fromAccount.getAccountID(), toAccount.getAccountID(), amount);
 
         return true;
     }
 
-    // ========== طرق قراءة المدخلات (Helpers) ==========
+
 
     public static int readAccountNumber() {
         while (true) {

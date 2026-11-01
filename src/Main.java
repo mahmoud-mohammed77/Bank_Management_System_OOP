@@ -174,7 +174,7 @@ public class Main {
         System.out.print("Enter model.Account Number: ");
         int accountNumber = input.nextInt();
 
-        bank.showTransactionHistory(accountNumber);
+        bank.ShowAccounts();
     }
 
     // ========== model.Customer Methods ==========

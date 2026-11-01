@@ -1,5 +1,4 @@
 package ui;
-
 import dao.AccountDAO;
 import dao.TransactionDAO;
 import model.Account;
@@ -9,7 +8,6 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
-
 
 public class TransactionPanel extends JPanel {
 
@@ -39,7 +37,7 @@ public class TransactionPanel extends JPanel {
         topPanel.add(accountNumberField);
 
         searchBtn = createStyledButton("Search", new Color(13, 110, 253));
-        refreshBtn = createStyledButton("Show All", new Color(108, 117, 125));
+        refreshBtn = createStyledButton("Clear", new Color(108, 117, 125));
 
         topPanel.add(searchBtn);
         topPanel.add(refreshBtn);
@@ -75,47 +73,49 @@ public class TransactionPanel extends JPanel {
             try {
                 int accNumber = Integer.parseInt(accNumStr);
 
+                // بنجيب الحساب عشان نعرف الـ AccountID
                 Account account = accountDAO.getAccountByNumber(accNumber);
                 if (account == null) {
                     JOptionPane.showMessageDialog(this, "Account not found!");
                     return;
                 }
+                System.out.println("DEBUG: Searching for Account Number: " + accNumber);
+                System.out.println("DEBUG: Found Account ID: " + account.getAccountID());
 
                 ArrayList<Transaction> transactions = transactionDAO.getTransactionsByAccount(account.getAccountID());
-                loadTableData(transactions, accNumber);
+
+                // بنجيب العمليات
+                ArrayList<Transaction> transactions1 = transactionDAO.getTransactionsByAccount(account.getAccountID());
+
+                tableModel.setRowCount(0); // ننضف الجدول
+
+                if (transactions.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "No transactions found for this account.");
+                    return;
+                }
+
+                for (Transaction t : transactions) {
+                    Object[] row = {
+                            t.getId(),
+                            accNumber, // رقم الحساب اللي بحثنا بيه
+                            t.getType(),
+                            t.getAmount(),
+                            t.getData(),
+                            t.getStatus()
+                    };
+                    tableModel.addRow(row);
+                }
 
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(this, "Invalid Account Number format!");
             }
         });
 
-        // 2. عرض كل العمليات
+        // 2. زرار التنضيف
         refreshBtn.addActionListener(e -> {
-            // نمسح الجدول ونعرض رسالة
+            accountNumberField.setText("");
             tableModel.setRowCount(0);
-            JOptionPane.showMessageDialog(this, "Please search by account number to view transactions.");
         });
-    }
-
-    // Method عشان نحط البيانات في الجدول
-    private void loadTableData(ArrayList<Transaction> transactions, int accountNumber) {
-        tableModel.setRowCount(0);
-        if (transactions.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No transactions found for this account.");
-            return;
-        }
-
-        for (Transaction t : transactions) {
-            Object[] row = {
-                    t.getId(),              // Transaction ID
-                    accountNumber,          // Account Number
-                    t.getType(),
-                    t.getAmount(),
-                    t.getData(),
-                    t.getStatus()           // Status
-            };
-            tableModel.addRow(row);
-        }
     }
 
     // Method مساعدة لتنسيق الأزرار
