@@ -27,4 +27,4 @@ A complete Desktop Banking Management System built using **Java**, **Java Swing 
 
 ## 👨‍💻 Author
 - **Your Name** (e.g., Mahmoud)
-- GitHub: [@your_username](https://github.com/your_username)
+- GitHub: [@mahmoud-mohammed77](https://github.com/your_username)
